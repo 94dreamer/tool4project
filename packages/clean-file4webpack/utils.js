@@ -6,10 +6,6 @@ function isFile (fileName) {
     return fs.lstatSync(fileName).isFile();
 };
 
-const statPath = path.resolve(process.cwd(), './stats.json')
-
-console.log('statPath',statPath)
-
 /**
  * @param {*} url
  */
@@ -51,8 +47,9 @@ function deleteFolderRecursive(url) {
 
 function childrenFiles(folderPath, moduleArr, unusedArr) {
     fs.readdirSync(folderPath).forEach(fileName => {
-        const childrenFile = `./${path.join(folderPath, fileName)}`;
-        if (!moduleArr.some(m => m.indexOf(childrenFile) !== -1)) {
+        const childrenFile = path.join(folderPath, fileName);
+
+        if (!moduleArr.some(m =>m.indexOf(childrenFile) !== -1)) {
             unusedArr.push(childrenFile);
         } else if (!isFile(childrenFile)) {
             arguments.callee(childrenFile, moduleArr, unusedArr);
@@ -80,13 +77,17 @@ function read4StepOne(){
     });
 }
 
-function out4StepTwo(cate) {
+function out4StepTwo(cate){ 
     fs.readFile(path.resolve(process.cwd(), './moduleArr.json'), 'utf8', (err, data) => {
         if (err) {
             console.error(err);
         }
         const file = path.resolve(process.cwd(), `./${cate || 'src'}`);
-        const moduleArr = JSON.parse(data);
+        
+        const moduleArr = JSON.parse(data
+            .replace( /\.\//g , process.cwd()+'/')
+        );
+
         const unusedArr = [];
         childrenFiles(file, moduleArr, unusedArr);
 
@@ -116,4 +117,3 @@ module.exports={
     out4StepTwo,
     del4StepThree
 }
-
